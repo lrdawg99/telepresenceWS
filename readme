@@ -1,0 +1,8 @@
+DEPENDENCIES:
+Client:
+configobj
+pyserial
+
+install with:
+sudo pip install configobj
+sudo pip install pyserial
