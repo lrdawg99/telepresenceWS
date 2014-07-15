@@ -1,36 +1,51 @@
 import socket
 import thread
-
-#start two threads: one socket for the controller client (50007), one socket for the robot client (50008)
+from collections import deque
 
 #controller thread
-def start_controller_client():
-	#controller socket
-	HOST = ''                 # Symbolic name meaning the local host
-	PORT = 50007              # Arbitrary non-privileged port
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.bind((HOST, PORT))
-	s.listen(1)
-	conn, addr = s.accept()
-	print 'Connected by', addr
-	while 1:
-	    data = conn.recv(1024)
-	    if not data: break
-	    conn.send(data)
-	conn.close()
+def start_controller_client(q, b):
+        #controller socket
+        HOST = ''
+        PORT = 51007
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind((HOST, PORT))
 
-#reciever thread
-def start_controller_client():
-	#controller socket
-	HOST = ''                 # Symbolic name meaning the local host
-	PORT = 50008              # Arbitrary non-privileged port
-	s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	s.bind((HOST, PORT))
-	s.listen(1)
-	conn, addr = s.accept()
-	print 'Connected by', addr
-	while 1:
-	    data = conn.recv(1024)
-	    if not data: break
-	    conn.send(data)
-	conn.close()
+        #Forever
+        while True:
+                s.listen(1)
+                conn, addr = s.accept()
+                print 'Controller connected by', addr
+                while 1:
+                        data = conn.recv(1024)
+                        if not data: break
+                        conn.send(data + " added to the task queue.")
+                        q.append(data);
+        conn.close()
+
+#receiver thread
+def start_receiver_client(q, b):
+        #controller socket
+        HOST = ''
+        PORT = 51008
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.bind((HOST, PORT))
+        #Forever
+        while True:
+                s.listen(1)
+                conn, addr = s.accept()
+                print 'Receiver connected by', addr
+                if len(q) <= 0:
+                        conn.send('no_tasks');
+                elif len(q) > 1:
+                    #data = conn.recv(1024)
+                    #if not data: break
+                    response = '';
+                    while len(q) > 0:
+                        response += q.popleft()
+                        if len(q) != 0:
+                                response += ','
+                    conn.send(response)
+                else:
+                    conn.send(q.popleft())
+        conn.close()
+
