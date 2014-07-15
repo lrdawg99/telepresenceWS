@@ -1,0 +1,30 @@
+#!/bin/bash
+# USAGE: start|stop|restart|status
+
+case "$1" in
+start)
+echo "Starting telepresence service..."
+cd ~/telepresence
+python server.py &
+;;
+stop)
+echo "Stopping telepresence service..."
+pkill -f server.py
+;;
+restart)
+echo "Stopping telepresence service..."
+pkill -f server.py
+echo "Starting telepresence service..."
+cd ~/telepresence
+python server.py &
+;;
+status)
+ps aux|grep -i telepresence
+;;
+
+*)
+echo “Telepresence Robot Service”
+echo $”Usage: $0 {start|stop|restart|status}”
+exit 1
+esac
+exit 0
